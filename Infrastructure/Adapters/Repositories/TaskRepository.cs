@@ -13,13 +13,19 @@ namespace Infrastructure.Adapters.Repositories
         {
         }
 
-        public async Task<IEnumerable<TaskItem>> GetTasksAsync()
+        public async Task<IEnumerable<TaskItem>> GetTasksAsync(string? priority = null)
         {
-            return await DbContext.Set<TaskItem>()
+            var query = DbContext.Set<TaskItem>()
                 .Include(x => x.AssignedToUser)
                 .Include(x => x.CreatedByUser)
-                .AsNoTracking()
-                .ToListAsync();
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(priority))
+            {
+                query = query.Where(x => JsonDbFunctions.JsonValue(x.AdditionalInfoJson, "$.prioridad") == priority);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<TaskItem?> FindTaskAsync(long id)

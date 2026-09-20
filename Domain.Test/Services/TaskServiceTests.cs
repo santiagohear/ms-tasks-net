@@ -29,7 +29,8 @@ namespace Domain.Test.Services
                 Title = "Task 1",
                 AssignedToUserId = 1,
                 CreatedByUserId = 2,
-                Status = TaskItem.PendingStatus
+                Status = TaskItem.PendingStatus,
+                AdditionalInfoJson = "{\"prioridad\":\"Media\",\"etiquetas\":[\"frontend\",\"ux\"]}"
             };
 
             _userRepositoryMock.FindAsync(task.AssignedToUserId).Returns(new User { Id = task.AssignedToUserId, UserName = "Assigned", Email = "assigned@test.com" });
@@ -74,9 +75,9 @@ namespace Domain.Test.Services
             };
             var tasks = new[] { existingTask };
 
-            _taskRepositoryMock.GetTasksAsync().Returns(tasks);
+            _taskRepositoryMock.GetTasksAsync("Media").Returns(tasks);
 
-            var result = await _taskService.GetTasksAsync();
+            var result = await _taskService.GetTasksAsync("Media");
 
             Assert.Single(result);
             Assert.Equal(existingTask, result.Single());
@@ -99,6 +100,29 @@ namespace Domain.Test.Services
             await _taskService.UpdateTaskStatusAsync(task.Id, TaskItem.InProgressStatus);
 
             Assert.Equal(TaskItem.InProgressStatus, task.Status);
+            Assert.NotNull(task.UpdatedAtUtc);
+            await _taskItemRepositoryMock.Received(1).UpdateAsync(task);
+        }
+
+        [Fact]
+        public async Task UpdateTaskPriorityAsync_WithValidPriority_ShouldUpdateJsonAndTimestamp()
+        {
+            var task = new TaskItem
+            {
+                Id = 20,
+                Title = "Task 2",
+                AssignedToUserId = 1,
+                CreatedByUserId = 2,
+                Status = TaskItem.InProgressStatus,
+                AdditionalInfoJson = "{\"etiquetas\":[\"backend\"],\"metadata\":{\"origen\":\"jira\"}}"
+            };
+
+            _taskItemRepositoryMock.FindAsync(task.Id).Returns(task);
+
+            await _taskService.UpdateTaskPriorityAsync(task.Id, "Alta");
+
+            Assert.Equal("Alta", TaskAdditionalInfo.Parse(task.AdditionalInfoJson).Priority);
+            Assert.Equal(["backend"], TaskAdditionalInfo.Parse(task.AdditionalInfoJson).Tags);
             Assert.NotNull(task.UpdatedAtUtc);
             await _taskItemRepositoryMock.Received(1).UpdateAsync(task);
         }

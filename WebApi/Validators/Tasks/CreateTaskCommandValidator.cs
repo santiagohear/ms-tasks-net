@@ -1,4 +1,6 @@
 using Application.Tasks.CreateTask;
+using Domain.Entities;
+using Domain.Exceptions;
 using FluentValidation;
 
 namespace WebApi.Validators.Tasks
@@ -19,6 +21,30 @@ namespace WebApi.Validators.Tasks
 
             RuleFor(x => x.CreatedByUserId)
                 .GreaterThan(0).WithMessage("Created by user id must be greater than 0");
+
+            RuleFor(x => x.AdditionalInfoJson)
+                .Must(BeValidAdditionalInfoJson)
+                .WithMessage("Additional info must be a valid JSON object");
+
+            RuleFor(x => x.Priority)
+                .Must(priority => priority is null || !string.IsNullOrWhiteSpace(priority))
+                .WithMessage("Priority cannot be empty");
+
+            RuleForEach(x => x.Tags)
+                .NotEmpty().WithMessage("Tags cannot contain empty values");
+        }
+
+        private static bool BeValidAdditionalInfoJson(string? additionalInfoJson)
+        {
+            try
+            {
+                TaskAdditionalInfo.EnsureValidJson(additionalInfoJson);
+                return true;
+            }
+            catch (Domain.Exceptions.ValidationException)
+            {
+                return false;
+            }
         }
     }
 }

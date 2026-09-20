@@ -29,6 +29,8 @@ namespace Domain.Services
                 throw new ValidationException("El título de la tarea es obligatorio");
             }
 
+            TaskAdditionalInfo.EnsureValidJson(task.AdditionalInfoJson);
+
             var assignedUser = await _userRepository.FindAsync(task.AssignedToUserId);
             if (assignedUser is null)
             {
@@ -51,9 +53,9 @@ namespace Domain.Services
             await _repository.AddAsync(task);
         }
 
-        public async Task<IEnumerable<TaskItem>> GetTasksAsync()
+        public async Task<IEnumerable<TaskItem>> GetTasksAsync(string? priority = null)
         {
-            return await _taskRepository.GetTasksAsync();
+            return await _taskRepository.GetTasksAsync(priority);
         }
 
         public async Task UpdateTaskStatusAsync(long taskId, string status)
@@ -73,6 +75,21 @@ namespace Domain.Services
             }
 
             task.Status = status;
+            task.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _repository.UpdateAsync(task);
+        }
+
+        public async Task UpdateTaskPriorityAsync(long taskId, string priority)
+        {
+            if (string.IsNullOrWhiteSpace(priority))
+            {
+                throw new ValidationException("La prioridad de la tarea es obligatoria");
+            }
+
+            var task = await _repository.FindAsync(taskId) ?? throw new NotFoundException($"No se encontró la tarea con Id: {taskId}");
+
+            task.AdditionalInfoJson = TaskAdditionalInfo.SetPriority(task.AdditionalInfoJson, priority);
             task.UpdatedAtUtc = DateTime.UtcNow;
 
             await _repository.UpdateAsync(task);

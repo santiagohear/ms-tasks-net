@@ -8,6 +8,8 @@ namespace Application.Tasks.CreateTask
         int AssignedToUserId,
         int CreatedByUserId,
         DateTime? EstimatedFinishDate,
-        string? AdditionalInfoJson
+        string? AdditionalInfoJson,
+        string? Priority = null,
+        string[]? Tags = null
     ) : IRequest;
 }

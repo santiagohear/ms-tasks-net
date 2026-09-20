@@ -23,24 +23,24 @@ namespace Domain.Test.Handler.GetTasks
         [Fact]
         public async Task Handle_WithValidQuery_ShouldReturnMappedDtos()
         {
-            var query = new GetTasksQuery();
+            var query = new GetTasksQuery("Media");
             var tasks = new List<TaskItem>
             {
                 new() { Id = 1, Title = "Task 1", AssignedToUserId = 1, CreatedByUserId = 2, Status = TaskItem.PendingStatus }
             };
             var dtos = new List<TaskDto>
             {
-                new() { Id = 1, Title = "Task 1", Status = TaskItem.PendingStatus, AssignedToUserId = 1, CreatedByUserId = 2 }
+                new() { Id = 1, Title = "Task 1", Status = TaskItem.PendingStatus, AssignedToUserId = 1, CreatedByUserId = 2, Priority = "Media", Tags = ["frontend"] }
             };
 
-            _taskService.GetTasksAsync().Returns(tasks);
+            _taskService.GetTasksAsync(query.Priority).Returns(tasks);
             _mapper.Map<IEnumerable<TaskDto>>(tasks).Returns(dtos);
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
             Assert.Single(result);
             _mapper.Received(1).Map<IEnumerable<TaskDto>>(tasks);
-            await _taskService.Received(1).GetTasksAsync();
+            await _taskService.Received(1).GetTasksAsync(query.Priority);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Domain.Test.Handler.GetTasks
             var tasks = Array.Empty<TaskItem>();
             var dtos = Array.Empty<TaskDto>();
 
-            _taskService.GetTasksAsync().Returns(tasks);
+            _taskService.GetTasksAsync(query.Priority).Returns(tasks);
             _mapper.Map<IEnumerable<TaskDto>>(tasks).Returns(dtos);
 
             var result = await _handler.Handle(query, CancellationToken.None);

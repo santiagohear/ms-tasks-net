@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Application.Tasks.GetTasks
 {
-    public record GetTasksQuery() : IRequest<IEnumerable<TaskDto>>;
+    public record GetTasksQuery(string? Priority = null) : IRequest<IEnumerable<TaskDto>>;
 }

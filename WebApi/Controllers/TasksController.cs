@@ -1,6 +1,7 @@
 using Application.Tasks.CreateTask;
 using Application.Tasks.GetTasks;
 using Application.Tasks.Shared;
+using Application.Tasks.UpdateTaskPriority;
 using Application.Tasks.UpdateTaskStatus;
 using Infrastructure.Attributes;
 using MediatR;
@@ -26,9 +27,9 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<TaskDto>), StatusCodes.Status200OK)]
-        public async Task<IEnumerable<TaskDto>> GetAsync()
+        public async Task<IEnumerable<TaskDto>> GetAsync([FromQuery] string? priority = null)
         {
-            return await _mediator.Send(new GetTasksQuery());
+            return await _mediator.Send(new GetTasksQuery(priority));
         }
 
         [HttpPut("{id:long}/status")]
@@ -37,6 +38,15 @@ namespace WebApi.Controllers
         public async Task<IActionResult> UpdateStatusAsync(long id, [Validate] UpdateTaskStatusRequest request)
         {
             await _mediator.Send(new UpdateTaskStatusCommand(id, request.Status));
+            return Ok();
+        }
+
+        [HttpPut("{id:long}/priority")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<IActionResult> UpdatePriorityAsync(long id, [Validate] UpdateTaskPriorityRequest request)
+        {
+            await _mediator.Send(new UpdateTaskPriorityCommand(id, request.Priority));
             return Ok();
         }
     }

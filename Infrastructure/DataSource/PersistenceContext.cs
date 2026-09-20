@@ -19,6 +19,7 @@ namespace Infrastructure.DataSource
                 return;
             }
             modelBuilder.HasDefaultSchema(_configuration.GetConnectionString("BaseSchema"));
+            modelBuilder.HasDbFunction(typeof(JsonDbFunctions).GetMethod(nameof(JsonDbFunctions.JsonValue))!);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(PersistenceContext).Assembly);
 
             base.OnModelCreating(modelBuilder);

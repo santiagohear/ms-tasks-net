@@ -36,6 +36,20 @@ namespace Domain.Test.Services
         }
 
         [Fact]
+        public async Task CreateTaskAsync_WithInvalidJson_ShouldThrowValidationException()
+        {
+            var task = new TaskItem
+            {
+                AssignedToUserId = 1,
+                CreatedByUserId = 2,
+                Title = "Task",
+                AdditionalInfoJson = "{invalid-json}"
+            };
+
+            await Assert.ThrowsAsync<ValidationException>(() => _taskService.CreateTaskAsync(task));
+        }
+
+        [Fact]
         public async Task CreateTaskAsync_WhenAssignedUserDoesNotExist_ShouldThrowValidationException()
         {
             var task = new TaskItem { AssignedToUserId = 999, CreatedByUserId = 2, Title = "Task" };
@@ -108,6 +122,20 @@ namespace Domain.Test.Services
             _taskItemRepositoryMock.FindAsync(task.Id).Returns(task);
 
             await Assert.ThrowsAsync<ValidationException>(() => _taskService.UpdateTaskStatusAsync(task.Id, TaskItem.DoneStatus));
+        }
+
+        [Fact]
+        public async Task UpdateTaskPriorityAsync_WithEmptyPriority_ShouldThrowValidationException()
+        {
+            await Assert.ThrowsAsync<ValidationException>(() => _taskService.UpdateTaskPriorityAsync(1, string.Empty));
+        }
+
+        [Fact]
+        public async Task UpdateTaskPriorityAsync_WhenTaskDoesNotExist_ShouldThrowNotFoundException()
+        {
+            _taskItemRepositoryMock.FindAsync(404L).Returns((TaskItem?)null);
+
+            await Assert.ThrowsAsync<NotFoundException>(() => _taskService.UpdateTaskPriorityAsync(404, "Alta"));
         }
     }
 }

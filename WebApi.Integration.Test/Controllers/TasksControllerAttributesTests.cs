@@ -61,5 +61,23 @@ namespace WebApi.Integration.Test.Controllers
             var requestParameter = method.GetParameters().Single(x => x.Name == "request");
             Assert.Contains(requestParameter.GetCustomAttributes(), attr => attr.GetType().Name == "ValidateAttribute");
         }
+
+        [Fact]
+        public void UpdatePriorityAsync_ShouldHaveHttpPutRouteAndValidation()
+        {
+            var method = typeof(TasksController).GetMethod("UpdatePriorityAsync");
+
+            Assert.NotNull(method);
+            var httpPut = method!.GetCustomAttribute<HttpPutAttribute>();
+            Assert.NotNull(httpPut);
+            Assert.Equal("{id:long}/priority", httpPut!.Template);
+
+            var responseCodes = method.GetCustomAttributes<ProducesResponseTypeAttribute>().Select(x => x.StatusCode).ToList();
+            Assert.Contains(StatusCodes.Status200OK, responseCodes);
+            Assert.Contains(StatusCodes.Status422UnprocessableEntity, responseCodes);
+
+            var requestParameter = method.GetParameters().Single(x => x.Name == "request");
+            Assert.Contains(requestParameter.GetCustomAttributes(), attr => attr.GetType().Name == "ValidateAttribute");
+        }
     }
 }

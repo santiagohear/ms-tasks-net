@@ -1,6 +1,7 @@
 using Application.Tasks.CreateTask;
 using Application.Tasks.GetTasks;
 using Application.Tasks.Shared;
+using Application.Tasks.UpdateTaskPriority;
 using Application.Tasks.UpdateTaskStatus;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +26,7 @@ namespace WebApi.Integration.Test.Controllers
         [Fact]
         public async Task CreateAsync_WithValidCommand_ShouldReturnCreatedAndSendCommand()
         {
-            var command = new CreateTaskCommand("Task", "Desc", 1, 2, null, null);
+            var command = new CreateTaskCommand("Task", "Desc", 1, 2, null, null, "Media", ["frontend", "ux"]);
 
             var result = await _controller.CreateAsync(command);
 
@@ -39,14 +40,14 @@ namespace WebApi.Integration.Test.Controllers
         {
             var tasks = new List<TaskDto>
             {
-                new() { Id = 1, Title = "Task 1", Status = "Pending", AssignedToUserId = 1, CreatedByUserId = 2 }
+                new() { Id = 1, Title = "Task 1", Status = "Pending", AssignedToUserId = 1, CreatedByUserId = 2, Priority = "Media", Tags = ["frontend", "ux"] }
             };
             _mediator.Send(Arg.Any<GetTasksQuery>(), Arg.Any<CancellationToken>()).Returns(tasks);
 
-            var result = await _controller.GetAsync();
+            var result = await _controller.GetAsync("Media");
 
             Assert.Single(result);
-            await _mediator.Received(1).Send(Arg.Any<GetTasksQuery>(), Arg.Any<CancellationToken>());
+            await _mediator.Received(1).Send(Arg.Is<GetTasksQuery>(q => q.Priority == "Media"), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -59,6 +60,19 @@ namespace WebApi.Integration.Test.Controllers
             Assert.IsType<OkResult>(result);
             await _mediator.Received(1).Send(
                 Arg.Is<UpdateTaskStatusCommand>(c => c.Id == 10 && c.Status == "InProgress"),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task UpdatePriorityAsync_WithValidRequest_ShouldReturnOkAndSendCommand()
+        {
+            var request = new UpdateTaskPriorityRequest { Priority = "Alta" };
+
+            var result = await _controller.UpdatePriorityAsync(10, request);
+
+            Assert.IsType<OkResult>(result);
+            await _mediator.Received(1).Send(
+                Arg.Is<UpdateTaskPriorityCommand>(c => c.Id == 10 && c.Priority == "Alta"),
                 Arg.Any<CancellationToken>());
         }
     }

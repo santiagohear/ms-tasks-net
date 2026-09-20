@@ -12,7 +12,7 @@ namespace Application.Tasks.GetTasks
 
         public async Task<IEnumerable<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
         {
-            var tasks = await _service.GetTasksAsync();
+            var tasks = await _service.GetTasksAsync(request.Priority);
             return _mapper.Map<IEnumerable<TaskDto>>(tasks);
         }
     }

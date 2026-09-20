@@ -24,8 +24,8 @@ namespace Domain.Test.Handler.GetTasks
         [Fact]
         public async Task Handle_WhenServiceThrowsException_ShouldPropagateException()
         {
-            var query = new GetTasksQuery();
-            _taskService.GetTasksAsync().ThrowsAsync(new InvalidOperationException("Service failure"));
+            var query = new GetTasksQuery("Alta");
+            _taskService.GetTasksAsync(query.Priority).ThrowsAsync(new InvalidOperationException("Service failure"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(query, CancellationToken.None));
             _mapper.DidNotReceive().Map<IEnumerable<TaskDto>>(Arg.Any<IEnumerable<TaskItem>>());
@@ -40,7 +40,7 @@ namespace Domain.Test.Handler.GetTasks
                 new() { Id = 1, Title = "Task 1", AssignedToUserId = 1, CreatedByUserId = 2, Status = TaskItem.PendingStatus }
             };
 
-            _taskService.GetTasksAsync().Returns(tasks);
+            _taskService.GetTasksAsync(query.Priority).Returns(tasks);
             _mapper.Map<IEnumerable<TaskDto>>(tasks).Throws(new AutoMapperMappingException("Mapping failed"));
 
             await Assert.ThrowsAsync<AutoMapperMappingException>(() => _handler.Handle(query, CancellationToken.None));

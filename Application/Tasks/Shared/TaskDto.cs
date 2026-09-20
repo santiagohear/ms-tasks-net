@@ -24,6 +24,8 @@ namespace Application.Tasks.Shared
 
         public DateTime? EstimatedFinishDate { get; set; }
 
-        public string? AdditionalInfoJson { get; set; }
+        public string? Priority { get; set; }
+
+        public IReadOnlyList<string> Tags { get; set; } = [];
     }
 }

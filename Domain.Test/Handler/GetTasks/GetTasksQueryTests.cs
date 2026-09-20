@@ -15,13 +15,11 @@ namespace Domain.Test.Handler.GetTasks
         }
 
         [Fact]
-        public void GetTasksQuery_MultipleInstances_ShouldBeEqual()
+        public void GetTasksQuery_WithPriority_ShouldSetProperty()
         {
-            var query1 = new GetTasksQuery();
-            var query2 = new GetTasksQuery();
+            var query = new GetTasksQuery("Media");
 
-            Assert.Equal(query1, query2);
-            Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
+            Assert.Equal("Media", query.Priority);
         }
 
         [Fact]
